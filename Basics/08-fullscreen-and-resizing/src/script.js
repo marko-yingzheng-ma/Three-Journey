@@ -13,8 +13,8 @@ const scene = new THREE.Scene()
 /**
  * Object
  */
-const geometry = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+const geometry = new THREE.BoxGeometry(1, 1, 1);
+const material = new THREE.MeshBasicMaterial({ color: 0xff0000 },)
 const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
 
@@ -28,11 +28,18 @@ const sizes = {
 
 window.addEventListener('resize', () => {
   console.log("window is resized");
+
+  // update sizes
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
+
+  // update camera
   camera.aspect = sizes.width / sizes.height;
   camera.updateProjectionMatrix();
+
+  // update canvas
   renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 })
 
 /**
@@ -51,9 +58,11 @@ controls.enableDamping = true
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-  canvas: canvas
+  canvas: canvas,
+  antialias: true
 })
 renderer.setSize(sizes.width, sizes.height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 /**
  * Animate
