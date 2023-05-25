@@ -27,8 +27,6 @@ const sizes = {
 }
 
 window.addEventListener('resize', () => {
-  console.log("window is resized");
-
   // update sizes
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
@@ -40,6 +38,17 @@ window.addEventListener('resize', () => {
   // update canvas
   renderer.setSize(sizes.width, sizes.height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+})
+
+window.addEventListener('dblclick', () => {
+  console.log("dblclick")
+  if (!document.fullscreenElement) {
+    canvas.requestFullscreen();
+    console.log("go full screen")
+  } else {
+    console.log("exit full screen")
+    document.exitFullscreen();
+  }
 })
 
 /**
@@ -70,8 +79,6 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 const clock = new THREE.Clock()
 
 const tick = () => {
-  const elapsedTime = clock.getElapsedTime()
-
   // Update controls
   controls.update()
 
