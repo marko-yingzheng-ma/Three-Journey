@@ -23,20 +23,41 @@ const scene = new THREE.Scene()
  * Lights
  */
 const ambientLight = new THREE.AmbientLight(0xffffff, 1)
+ambientLight.visible = false;
 scene.add(ambientLight)
 
-const pointLight = new THREE.PointLight(0xffffff, 2)
-pointLight.position.x = 2
-pointLight.position.y = 3
-pointLight.position.z = 4
+const hemisphereLight = new THREE.HemisphereLight(0xfffb00, 0x00ffc8, 0.5) // Similar to ambient light but with a different color coming from sky vs from ground; 
+hemisphereLight.visible = false;
+scene.add(hemisphereLight);
+
+const directionLight = new THREE.DirectionalLight(0xffffff, 0.5)
+directionLight.position.set(-1.8, 0.6, -1.8);
+directionLight.visible = false;
+scene.add(directionLight);
+
+const pointLight = new THREE.PointLight(0xffffff, 0.5, 10)
+pointLight.visible = false;
+pointLight.position.set(-1.8, 0.6, -1.8);
 scene.add(pointLight)
 
-const lightHelper = new THREE.PointLightHelper(pointLight, 0.2);
-scene.add(lightHelper);
+const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.2);
+scene.add(pointLightHelper);
 
-gui.add(pointLight.position, 'x').max(10).min(-10).step(0.001)
-gui.add(pointLight.position, 'y').max(10).min(-10).step(0.001)
-gui.add(pointLight.position, 'z').max(10).min(-10).step(0.001)
+const directionLightHelper = new THREE.DirectionalLightHelper(directionLight, 0.2);
+scene.add(directionLightHelper);
+
+gui.add(pointLight.position, 'x').max(10).min(-10).step(0.001).name('point x')
+gui.add(pointLight.position, 'y').max(10).min(-10).step(0.001).name('point y')
+gui.add(pointLight.position, 'z').max(10).min(-10).step(0.001).name('point z')
+
+gui.add(directionLight.position, 'x').max(10).min(-10).step(0.001).name('Direction x')
+gui.add(directionLight.position, 'y').max(10).min(-10).step(0.001).name('Direction y')
+gui.add(directionLight.position, 'z').max(10).min(-10).step(0.001).name('Direction z')
+
+gui.add(ambientLight, 'visible').name('Ambient Light')
+gui.add(hemisphereLight, 'visible').name('Hemisphere Light')
+gui.add(directionLight, 'visible').name('Direction Light');
+gui.add(pointLight, 'visible').name('Point Light');
 
 /**
  * Objects
@@ -45,8 +66,7 @@ gui.add(pointLight.position, 'z').max(10).min(-10).step(0.001)
 const texture = textureLoader.load('/textures/door/color.jpg');
 
 // Material
-const material = new THREE.MeshStandardMaterial()
-material.map = texture;
+const material = new THREE.MeshStandardMaterial({ color: 'cccccc' })
 material.roughness = 0.4
 material.metalness = 0.5
 
