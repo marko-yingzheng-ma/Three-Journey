@@ -40,6 +40,13 @@ pointLight.visible = false;
 pointLight.position.set(-1.8, 0.6, -1.8);
 scene.add(pointLight)
 
+const rectAreaLight = new THREE.RectAreaLight(0x4e00ff, 5, 3, 1)
+rectAreaLight.position.set(0, 0.6, -1);
+rectAreaLight.visible = false;
+rectAreaLight.lookAt(0, 0, 0)
+scene.add(rectAreaLight);
+
+// Light helpers
 const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.2);
 scene.add(pointLightHelper);
 
@@ -54,11 +61,16 @@ gui.add(directionLight.position, 'x').max(10).min(-10).step(0.001).name('Directi
 gui.add(directionLight.position, 'y').max(10).min(-10).step(0.001).name('Direction y')
 gui.add(directionLight.position, 'z').max(10).min(-10).step(0.001).name('Direction z')
 
+gui.add(rectAreaLight.position, 'x').max(10).min(-10).step(0.001).name('Rect x')
+gui.add(rectAreaLight.position, 'y').max(10).min(-10).step(0.001).name('Rect y')
+gui.add(rectAreaLight.position, 'z').max(10).min(-10).step(0.001).name('Rect z')
+
+
 gui.add(ambientLight, 'visible').name('Ambient Light')
 gui.add(hemisphereLight, 'visible').name('Hemisphere Light')
 gui.add(directionLight, 'visible').name('Direction Light');
 gui.add(pointLight, 'visible').name('Point Light');
-
+gui.add(rectAreaLight, 'visible').name('Rect Light');
 /**
  * Objects
  */
@@ -93,7 +105,7 @@ const torus = new THREE.Mesh(
 torus.position.x = 1.5
 
 const plane = new THREE.Mesh(
-  new THREE.PlaneGeometry(5, 5),
+  new THREE.PlaneGeometry(20, 20),
   material
 )
 plane.rotation.x = - Math.PI * 0.5
