@@ -46,6 +46,10 @@ rectAreaLight.visible = false;
 rectAreaLight.lookAt(0, 0, 0)
 scene.add(rectAreaLight);
 
+const spotLight = new THREE.SpotLight(0x78ff00, 0.5, 10, Math.PI * 0.1, 0, 1);
+spotLight.position.set(0, 2, 3);
+scene.add(spotLight);
+
 // Light helpers
 const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.2);
 scene.add(pointLightHelper);
@@ -178,6 +182,8 @@ const tick = () => {
 
   // Update controls
   controls.update()
+
+  directionLightHelper.update();
 
   // Render
   renderer.render(scene, camera)
