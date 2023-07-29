@@ -40,7 +40,7 @@ fontLoader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
     bevelThickness: 0.03,
     bevelSize: 0.01,
     bevelOffset: 0,
-    bevelSegments: 5
+    bevelSegments: 20
   });
   // textGeometry.computeBoundingBox();
   // const boundingBox = textGeometry.boundingBox;
