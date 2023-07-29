@@ -31,11 +31,11 @@ const matCapTexture = textureLoader.load('/textures/matcaps/1.png');
 const fontLoader = new FontLoader();
 
 fontLoader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
-  const textGeometry = new TextGeometry('Marko Ma', {
+  const textGeometry = new TextGeometry('Marko  Ma', {
     font: font,
     size: 0.5,
     height: 0.5,
-    curveSegments: 1,
+    curveSegments: 20,
     bevelEnabled: true,
     bevelThickness: 0.03,
     bevelSize: 0.01,
