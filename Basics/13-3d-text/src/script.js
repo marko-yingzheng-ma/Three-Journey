@@ -31,17 +31,16 @@ const matCapTexture = textureLoader.load('/textures/matcaps/1.png');
 const fontLoader = new FontLoader();
 
 fontLoader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
-  console.log(font)
-  const textGeometry = new TextGeometry('WoooW', {
+  const textGeometry = new TextGeometry('Marko Ma', {
     font: font,
     size: 0.5,
     height: 0.5,
-    curveSegments: 5,
+    curveSegments: 1,
     bevelEnabled: true,
     bevelThickness: 0.03,
     bevelSize: 0.01,
     bevelOffset: 0,
-    bevelSegments: 4
+    bevelSegments: 5
   });
   // textGeometry.computeBoundingBox();
   // const boundingBox = textGeometry.boundingBox;
@@ -50,11 +49,10 @@ fontLoader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
   //   - (boundingBox.max.y - 0.02) * 0.5,
   //   - (boundingBox.max.z - 0.03) * 0.5
   // )
-  textGeometry.center()
+  textGeometry.center() // same as the 6 lines above
 
 
-  const material = new THREE.MeshMatcapMaterial();
-  material.matcap = matCapTexture;
+  const material = new THREE.MeshNormalMaterial();
 
   const textMesh = new THREE.Mesh(textGeometry, material);
   scene.add(textMesh);
@@ -80,9 +78,9 @@ const setupBackground = (size = 100, material) => {
 
   for (let i = 0; i < size; i++) {
     const donut = new THREE.Mesh(donutGeometry, material);
-    donut.position.x = (Math.random() - 0.5) * 10
-    donut.position.y = (Math.random() - 0.5) * 10
-    donut.position.z = (Math.random() - 0.5) * 10
+    donut.position.x = (Math.random() - 0.5) * 12
+    donut.position.y = (Math.random() - 0.5) * 12
+    donut.position.z = (Math.random() - 0.5) * 12
 
     donut.rotation.x = Math.random() * Math.PI;
     donut.rotation.y = Math.random() * Math.PI;
