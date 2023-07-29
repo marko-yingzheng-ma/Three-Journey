@@ -16,18 +16,21 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
+// Texture Loader
+const textureLoader = new THREE.TextureLoader();
 
 /**
  * Lights
  */
 // Ambient light
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
 gui.add(ambientLight, 'intensity').min(0).max(1).step(0.001).name('Ambient Intensity');
 scene.add(ambientLight)
 
 // Directional light
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.2)
 directionalLight.position.set(2, 2, - 1)
+directionalLight.visible = false;
 directionalLight.castShadow = true;
 directionalLight.shadow.mapSize.set(512, 512);
 directionalLight.shadow.camera.near = 1;
@@ -47,8 +50,9 @@ directLightFolderUI.add(directionalLight, 'visible')
 scene.add(directionalLight)
 
 // Spotlight
-const spotlight = new THREE.SpotLight(0xffffff, 0.5);
+const spotlight = new THREE.SpotLight(0xffffff, 0.2);
 spotlight.castShadow = true;
+spotlight.visible = false;
 spotlight.position.set(0, 2, 2);
 spotlight.shadow.mapSize.set(1024, 1024);
 spotlight.shadow.camera.near = 2;
@@ -68,7 +72,7 @@ spotlightFolderUI.add(spotlight.position, 'z').min(- 5).max(5).step(0.001)
 spotlightFolderUI.add(spotlight, 'visible')
 
 // Point Light
-const pointLight = new THREE.PointLight(0xffffff, 0.5);
+const pointLight = new THREE.PointLight(0xffffff, 0.2);
 pointLight.position.set(-1, 1, 0);
 pointLight.castShadow = true;
 pointLight.shadow.mapSize.set(1024, 1024);
@@ -108,6 +112,13 @@ scene.add(pointlightShadowCameraHelper);
 spotlightFolderUI.add(spotlightShadowCameraHelper, 'visible').name('shadow cam helper');
 directLightFolderUI.add(directionalLightHelper, 'visible').name('light helper');
 pointlightFolderUI.add(pointlightShadowCameraHelper, 'visible').name('light helper');
+
+/**
+ * Texture: Baking shadow
+ */
+const bakedShadow = textureLoader.load('/textures/bakedShadow.jpg');
+const simpleShadow = textureLoader.load('/textures/simpleShadow.jpg');
+
 /**
  * Materials
  */
@@ -134,7 +145,18 @@ plane.receiveShadow = true;
 plane.rotation.x = - Math.PI * 0.5
 plane.position.y = - 0.5
 
-scene.add(sphere, plane)
+const sphereShadow = new THREE.Mesh(
+  new THREE.PlaneGeometry(1.5, 1.5),
+  new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    transparent: true,
+    alphaMap: simpleShadow
+  })
+)
+sphereShadow.rotation.x = - Math.PI * 0.5
+sphereShadow.position.y = plane.position.y + 0.01;
+
+scene.add(sphere, plane, sphereShadow)
 
 /**
  * Sizes
@@ -183,6 +205,12 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+gui.add(renderer.shadowMap, 'enabled').onChange((enabled) => {
+  directionalLight.castShadow = enabled;
+  spotlight.castShadow = enabled;
+  pointLight.castShadow = enabled;
+});
 /**
  * Animate
  */
@@ -201,6 +229,17 @@ const tick = () => {
   directionalLightShadowCameraHelper.update();
   spotlightShadowCameraHelper.update();
   pointlightShadowCameraHelper.update();
+
+  // update the sphere 
+  sphere.position.set(
+    Math.cos(elapsedTime) * 1.5,
+    Math.abs(Math.sin(elapsedTime * 3)),
+    Math.sin(elapsedTime) * 1.5
+  )
+  sphereShadow.position.x = sphere.position.x;
+  sphereShadow.position.z = sphere.position.z;
+  sphereShadow.material.opacity = 1 - sphere.position.y;
+
   // Call tick again on the next frame
   window.requestAnimationFrame(tick)
 }
