@@ -58,6 +58,7 @@ fontLoader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
   scene.add(textMesh);
 
   const box = new THREE.BoxHelper(textMesh, 0xffff00);
+  box.visible = false;
   scene.add(box)
 
   gui.add(box, 'visible').name('box')
@@ -128,6 +129,7 @@ const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
 
 const axesHelper = new THREE.AxesHelper(5); // Specify the size of the axes
+axesHelper.visible = false;
 scene.add(axesHelper);
 
 gui.add(axesHelper, 'visible').name('axes')
