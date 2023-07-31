@@ -233,7 +233,7 @@ const tick = () => {
   // update the sphere 
   sphere.position.set(
     Math.cos(elapsedTime) * 1.5,
-    Math.abs(Math.sin(elapsedTime * 3)),
+    Math.abs(Math.sin(elapsedTime * 4)),
     Math.sin(elapsedTime) * 1.5
   )
   sphereShadow.position.x = sphere.position.x;
