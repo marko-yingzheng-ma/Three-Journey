@@ -16,7 +16,7 @@ const loadingManager = new THREE.LoadingManager(
 const textureLoader = new THREE.TextureLoader(loadingManager);
 
 // The color texture (also known as albedo texture or diffuse texture) represents the base color of the material. It defines the visual appearance and color of the surface. In simple terms, it's the texture that gives the surface its color or pattern.
-const colorTexture = textureLoader.load('/textures/minecraft.png');
+const colorTexture = textureLoader.load('/textures/door/color.jpg');
 
 // The alpha texture (also called transparency texture) is used to control the transparency or opacity of the material. It determines which parts of the surface are fully visible, partially visible, or completely transparent.
 const alphaTexture = textureLoader.load('/textures/door/alpha.jpg');
@@ -72,7 +72,10 @@ const scene = new THREE.Scene()
  * Object
  */
 const geometry = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshBasicMaterial({ map: colorTexture })
+const material = new THREE.MeshBasicMaterial({
+  map: colorTexture,
+  aoMap: ambientOcclusionTexture
+})
 const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
 
