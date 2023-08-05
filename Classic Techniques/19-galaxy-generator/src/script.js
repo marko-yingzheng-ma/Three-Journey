@@ -26,6 +26,8 @@ const textureLoader = new THREE.TextureLoader()
 const galaxyConfig = {
   count: 5000, // number of particles
   size: 0.05,
+  radius: 5,
+  branches: 3,
   texture: 1,
 }
 
@@ -51,8 +53,18 @@ const generateGalaxy = () => {
 
   const generateStars = () => {
     const positions = new Float32Array(count * 3);
-    for (let i = 0; i < count * 3; i++) {
-      positions[i] = (Math.random() - 0.5) * 10 + 0.1
+
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3;
+
+      const radius = Math.random() * galaxyConfig.radius;
+      const branchAngle = (i % galaxyConfig.branches) * (2 * Math.PI / galaxyConfig.branches)
+      if (i < 10) {
+        console.log(branchAngle);
+      }
+      positions[i3] = radius * Math.cos(branchAngle);
+      positions[i3 + 1] = 0
+      positions[i3 + 2] = radius * Math.sin(branchAngle);
     }
     return positions;
   }
@@ -83,6 +95,16 @@ gui
   .add(galaxyConfig, 'count').max(50000).min(500).step(100)
   .onFinishChange(generateGalaxy)
 
+gui
+  .add(galaxyConfig, 'radius').max(20).min(0.01).step(0.001)
+  .onFinishChange(generateGalaxy)
+
+gui
+  .add(galaxyConfig, 'branches').max(20).min(2).step(1)
+  .onFinishChange(generateGalaxy)
+
+const axesHelper = new THREE.AxesHelper();
+scene.add(axesHelper);
 /**
  * Sizes
  */
