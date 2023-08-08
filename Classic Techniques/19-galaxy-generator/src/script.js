@@ -24,24 +24,28 @@ const textureLoader = new THREE.TextureLoader()
  */
 
 const galaxyConfig = {
-  count: 5000, // number of particles
-  size: 0.05,
-  radius: 5,
-  branches: 3,
+  count: 100000, // number of particles
+  size: 0.01,
+  radius: 10,
+  branches: 5,
+  spin: 0.5,
+  randomnessPower: 2,
+  insideColor: '#ad36ec',
+  outsideColor: '#6abae2',
   texture: 1,
 }
 
-let geometry, material, points;
+let geometry, material, galaxy;
 
 const generateGalaxy = () => {
   /**
    * Destroy old galaxy
    */
   const resetGalaxy = () => {
-    if (points) {
+    if (galaxy) {
       geometry.dispose()
       material.dispose()
-      scene.remove(points);
+      scene.remove(galaxy);
     }
   }
 
@@ -53,23 +57,43 @@ const generateGalaxy = () => {
 
   const generateStars = () => {
     const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const insideColor = new THREE.Color(galaxyConfig.insideColor);
+    const outsideColor = new THREE.Color(galaxyConfig.outsideColor);
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
 
+      // populate positions
       const radius = Math.random() * galaxyConfig.radius;
+      const spinAngle = radius * galaxyConfig.spin;
       const branchAngle = (i % galaxyConfig.branches) * (2 * Math.PI / galaxyConfig.branches)
-      if (i < 10) {
-        console.log(branchAngle);
-      }
-      positions[i3] = radius * Math.cos(branchAngle);
-      positions[i3 + 1] = 0
-      positions[i3 + 2] = radius * Math.sin(branchAngle);
+
+      // use pow function since the power of smaller value (0 - 1) tend to be even much smaller (e.g comparing 0.1^2 vs. 0.99 ^ 2)which leads to more random deviance close to the original branch line and less far from original
+      const randomX = (Math.pow(Math.random(), galaxyConfig.randomnessPower)) * (Math.random() < 0.5 ? 1 : -1);
+      const randomY = (Math.pow(Math.random(), galaxyConfig.randomnessPower)) * (Math.random() < 0.5 ? 1 : -1);
+      const randomZ = (Math.pow(Math.random(), galaxyConfig.randomnessPower)) * (Math.random() < 0.5 ? 1 : -1);
+
+      positions[i3] = radius * Math.cos(branchAngle + spinAngle) + randomX;
+      positions[i3 + 1] = randomY
+      positions[i3 + 2] = radius * Math.sin(branchAngle + spinAngle) + randomZ;
+
+      // populate colors
+      const mixedColor = insideColor.clone();
+      mixedColor.lerp(outsideColor, radius / galaxyConfig.radius)
+      colors[i3] = mixedColor.r;
+      colors[i3 + 1] = mixedColor.g;
+      colors[i3 + 2] = mixedColor.b;
     }
-    return positions;
+
+    return { positions, colors };
   }
 
-  geometry.setAttribute("position", new THREE.BufferAttribute(generateStars(count), 3))
+  const { positions, colors } = generateStars(count);
+
+
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3))
 
   // Material
   material = new THREE.PointsMaterial({
@@ -77,14 +101,15 @@ const generateGalaxy = () => {
     sizeAttenuation: true,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending
+    blending: THREE.AdditiveBlending,
+    vertexColors: true
   })
 
-  points = new THREE.Points(geometry, material);
+  galaxy = new THREE.Points(geometry, material);
 
-  scene.add(points);
-
+  scene.add(galaxy);
 }
+
 generateGalaxy();
 
 gui
@@ -92,7 +117,7 @@ gui
   .onFinishChange(generateGalaxy)
 
 gui
-  .add(galaxyConfig, 'count').max(50000).min(500).step(100)
+  .add(galaxyConfig, 'count').max(100000).min(500).step(100)
   .onFinishChange(generateGalaxy)
 
 gui
@@ -103,8 +128,22 @@ gui
   .add(galaxyConfig, 'branches').max(20).min(2).step(1)
   .onFinishChange(generateGalaxy)
 
-const axesHelper = new THREE.AxesHelper();
-scene.add(axesHelper);
+gui
+  .add(galaxyConfig, 'spin').max(5).min(0).step(0.001)
+  .onFinishChange(generateGalaxy)
+
+gui
+  .add(galaxyConfig, 'randomnessPower').max(10).min(1).step(1)
+  .onFinishChange(generateGalaxy)
+
+gui
+  .addColor(galaxyConfig, 'insideColor').onFinishChange(generateGalaxy)
+
+gui
+  .addColor(galaxyConfig, 'outsideColor').onFinishChange(generateGalaxy)
+
+// const axesHelper = new THREE.AxesHelper();
+// scene.add(axesHelper);
 /**
  * Sizes
  */
@@ -164,6 +203,13 @@ const tick = () => {
 
   // Render
   renderer.render(scene, camera)
+
+  // animation
+  if (galaxy) {
+    galaxy.rotation.y = elapsedTime * 0.05;
+    galaxy.position.z = 2 * Math.sin(elapsedTime * 0.2);
+    galaxy.position.y = 2 * Math.sin(elapsedTime * 0.2);
+  }
 
   // Call tick again on the next frame
   window.requestAnimationFrame(tick)
