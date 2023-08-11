@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
-import CANNON, { Vec3 } from 'cannon';
+import CANNON from 'cannon';
 
 THREE.ColorManagement.enabled = false
 
@@ -25,10 +25,11 @@ const debugParams = {
   floorHeight: 50
 }
 
-debugParams.createObject = () => {
-  const getRandomVertexPosition = () => {
-    return (Math.random() - 0.5) * debugParams.floorWidth + 1
-  }
+const getRandomVertexPosition = () => {
+  return (Math.random() - 0.5) * debugParams.floorWidth * 0.5 + 2
+}
+
+debugParams.createObjectSphere = () => {
   createSphere(
     Math.random() * 2 + 0.5,
     {
@@ -38,7 +39,21 @@ debugParams.createObject = () => {
     })
 }
 
-gui.add(debugParams, 'createObject')
+gui.add(debugParams, 'createObjectSphere')
+
+debugParams.createObjectBox = () => {
+  createBox(
+    Math.random() * 2 + 0.5,
+    Math.random() * 2 + 0.5,
+    Math.random() * 2 + 0.5,
+    {
+      x: getRandomVertexPosition(),
+      y: Math.abs(getRandomVertexPosition()),
+      z: getRandomVertexPosition()
+    })
+}
+
+gui.add(debugParams, 'createObjectBox')
 /**
  * Textures
  */
@@ -64,31 +79,15 @@ world.gravity.set(0, -9.82, 0);
 
 // Physics material (a reference to our 3D material) - maybe we could apply a rubber physics material to a brick 3D material so that a brick will physically behaves like a rubber..
 const defaultMaterial = new CANNON.Material('default')
-
 const defaultContactMaterial = new CANNON.ContactMaterial(
   defaultMaterial,
   defaultMaterial,
   {
-    friction: 0.5,
-    restitution: 0.8,
+    friction: 0.2,
+    restitution: 0.5,
   }
 ) // Defines what happens when two materials meet.
 world.defaultContactMaterial = defaultContactMaterial
-
-
-// sphere
-// const sphereShape = new CANNON.Sphere(0.5)
-// const sphereBody = new CANNON.Body({
-//   mass: 1,
-//   position: new CANNON.Vec3(0, 3, 0),
-//   shape: sphereShape,
-//   material: defaultMaterial
-// })
-// sphereBody.applyLocalForce(new CANNON.Vec3(200, 300, 0), new CANNON.Vec3(0, 0, 0))
-// world.addBody(sphereBody);
-
-// Add multiple objects...
-
 
 // Floor
 const floorShape = new CANNON.Plane() // infinite
@@ -103,25 +102,8 @@ floorBody.quaternion.setFromAxisAngle(
 )
 world.addBody(floorBody);
 
-
-// /**
-//  * Test sphere
-//  */
-// const sphere = new THREE.Mesh(
-//   new THREE.SphereGeometry(0.5, 32, 32),
-//   new THREE.MeshStandardMaterial({
-//     metalness: 0.5,
-//     roughness: 0.5,
-//     envMap: environmentMapTexture,
-//     envMapIntensity: 0.5
-//   })
-// )
-// sphere.castShadow = true
-// sphere.position.y = 3
-// scene.add(sphere)
-
 /**
- * Floor
+ * 3JS Floor
  */
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(debugParams.floorWidth, debugParams.floorHeight),
@@ -137,9 +119,11 @@ floor.receiveShadow = true
 floor.rotation.x = - Math.PI * 0.5
 scene.add(floor)
 
-// combine creating physics and 3js object together
-
+/**
+ * Combine creating physics and 3js object together both 3js and physics objects
+ */
 let objectsToSync = [];
+
 const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
 const sphereMaterial = new THREE.MeshStandardMaterial({
   metalness: 0.5,
@@ -147,6 +131,38 @@ const sphereMaterial = new THREE.MeshStandardMaterial({
   envMap: environmentMapTexture,
   envMapIntensity: 0.5
 })
+
+const boxGeometry = new THREE.BoxGeometry(1, 1);
+const boxMaterial = new THREE.MeshStandardMaterial({
+  metalness: 0.5,
+  roughness: 0.5,
+  envMap: environmentMapTexture,
+  envMapIntensity: 0.5
+})
+
+const createBox = (width, height, depth, position) => {
+  // Mesh
+  const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+  boxMesh.scale.set(width, height, depth);
+  boxMesh.castShadow = true;
+  boxMesh.position.copy(position);
+  scene.add(boxMesh);
+
+  // Body
+  const boxShape = new CANNON.Box(new CANNON.Vec3(width * 0.5, height * 0.5, depth * 0.5));
+  const boxBody = new CANNON.Body({
+    mass: 1,
+    shape: boxShape,
+    material: defaultMaterial
+  })
+  boxBody.position.copy(position);
+  world.addBody(boxBody);
+
+  objectsToSync.push({
+    mesh: boxMesh,
+    body: boxBody
+  })
+}
 
 const createSphere = (radius = 0.5, position) => {
   if (!radius || !position) {
@@ -168,22 +184,23 @@ const createSphere = (radius = 0.5, position) => {
     material: defaultMaterial
   })
   sphereBody.position.copy(position);
+  world.addBody(sphereBody);
 
   // track objects
   objectsToSync.push({
     mesh: sphereMesh,
     body: sphereBody
   })
-
-  world.addBody(sphereBody);
 }
 
-createSphere(0.5, { x: 0, y: 5, z: 0 });
+// createSphere(0.5, { x: 0, y: 5, z: 0 });
+createBox(1, 1, 1, { x: 0, y: 5, z: 0 })
 
 const syncObjects = () => {
   for (let objectPair of objectsToSync) {
     const { mesh, body } = objectPair;
-    mesh.position.copy(body.position)
+    mesh.position.copy(body.position);
+    mesh.quaternion.copy(body.quaternion);
   }
 }
 
