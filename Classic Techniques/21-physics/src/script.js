@@ -39,8 +39,6 @@ debugParams.createObjectSphere = () => {
     })
 }
 
-gui.add(debugParams, 'createObjectSphere')
-
 debugParams.createObjectBox = () => {
   createBox(
     Math.random() * 2 + 0.5,
@@ -53,7 +51,27 @@ debugParams.createObjectBox = () => {
     })
 }
 
-gui.add(debugParams, 'createObjectBox')
+debugParams.reset = () => {
+  for (const objPair of objectsToSync) {
+    const { mesh, body } = objPair;
+
+    // remove event listeners
+    body.removeEventListener('collide', playHitSound);
+
+    // remove body
+    world.remove(body);
+
+    // remove mesh
+    scene.remove(mesh);
+  }
+
+  objectsToSync = [];
+}
+
+gui.add(debugParams, 'createObjectSphere');
+gui.add(debugParams, 'createObjectBox');
+gui.add(debugParams, 'reset');
+
 /**
  * Textures
  */
