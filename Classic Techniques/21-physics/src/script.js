@@ -70,6 +70,19 @@ const environmentMapTexture = cubeTextureLoader.load([
 ])
 
 /**
+ * Sounds
+ */
+const hitSound = new Audio('/sounds/hit.mp3');
+const playHitSound = (collision) => {
+  const velocity = collision.contact.getImpactVelocityAlongNormal();
+  if (velocity > 3) {
+    hitSound.volume = Math.random();
+    hitSound.currentTime = 0;
+    hitSound.play();
+  }
+}
+
+/**
  * Physics
  */
 
@@ -158,6 +171,7 @@ const createBox = (width, height, depth, position) => {
     material: defaultMaterial
   })
   boxBody.position.copy(position);
+  boxBody.addEventListener('collide', playHitSound)
   world.addBody(boxBody);
 
   objectsToSync.push({
@@ -186,6 +200,7 @@ const createSphere = (radius = 0.5, position) => {
     material: defaultMaterial
   })
   sphereBody.position.copy(position);
+  sphereBody.addEventListener('collide', playHitSound)
   world.addBody(sphereBody);
 
   // track objects
