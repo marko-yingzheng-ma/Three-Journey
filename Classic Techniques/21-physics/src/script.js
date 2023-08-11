@@ -75,6 +75,8 @@ const environmentMapTexture = cubeTextureLoader.load([
 
 // world
 const world = new CANNON.World();
+world.broadphase = new CANNON.SAPBroadphase(world);
+world.allowSleep = true;
 world.gravity.set(0, -9.82, 0);
 
 // Physics material (a reference to our 3D material) - maybe we could apply a rubber physics material to a brick 3D material so that a brick will physically behaves like a rubber..
