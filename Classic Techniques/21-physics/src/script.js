@@ -19,6 +19,26 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
+// Debug
+const debugParams = {
+  floorWidth: 50,
+  floorHeight: 50
+}
+
+debugParams.createObject = () => {
+  const getRandomVertexPosition = () => {
+    return (Math.random() - 0.5) * debugParams.floorWidth + 1
+  }
+  createSphere(
+    Math.random() * 2 + 0.5,
+    {
+      x: getRandomVertexPosition(),
+      y: Math.abs(getRandomVertexPosition()),
+      z: getRandomVertexPosition()
+    })
+}
+
+gui.add(debugParams, 'createObject')
 /**
  * Textures
  */
@@ -57,15 +77,18 @@ world.defaultContactMaterial = defaultContactMaterial
 
 
 // sphere
-const sphereShape = new CANNON.Sphere(0.5)
-const sphereBody = new CANNON.Body({
-  mass: 1,
-  position: new CANNON.Vec3(0, 3, 0),
-  shape: sphereShape,
-  material: defaultMaterial
-})
-sphereBody.applyLocalForce(new CANNON.Vec3(200, 300, 0), new CANNON.Vec3(0, 0, 0))
-world.addBody(sphereBody);
+// const sphereShape = new CANNON.Sphere(0.5)
+// const sphereBody = new CANNON.Body({
+//   mass: 1,
+//   position: new CANNON.Vec3(0, 3, 0),
+//   shape: sphereShape,
+//   material: defaultMaterial
+// })
+// sphereBody.applyLocalForce(new CANNON.Vec3(200, 300, 0), new CANNON.Vec3(0, 0, 0))
+// world.addBody(sphereBody);
+
+// Add multiple objects...
+
 
 // Floor
 const floorShape = new CANNON.Plane() // infinite
@@ -81,27 +104,27 @@ floorBody.quaternion.setFromAxisAngle(
 world.addBody(floorBody);
 
 
-/**
- * Test sphere
- */
-const sphere = new THREE.Mesh(
-  new THREE.SphereGeometry(0.5, 32, 32),
-  new THREE.MeshStandardMaterial({
-    metalness: 0.5,
-    roughness: 0.5,
-    envMap: environmentMapTexture,
-    envMapIntensity: 0.5
-  })
-)
-sphere.castShadow = true
-sphere.position.y = 3
-scene.add(sphere)
+// /**
+//  * Test sphere
+//  */
+// const sphere = new THREE.Mesh(
+//   new THREE.SphereGeometry(0.5, 32, 32),
+//   new THREE.MeshStandardMaterial({
+//     metalness: 0.5,
+//     roughness: 0.5,
+//     envMap: environmentMapTexture,
+//     envMapIntensity: 0.5
+//   })
+// )
+// sphere.castShadow = true
+// sphere.position.y = 3
+// scene.add(sphere)
 
 /**
  * Floor
  */
 const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(100, 100),
+  new THREE.PlaneGeometry(debugParams.floorWidth, debugParams.floorHeight),
   new THREE.MeshStandardMaterial({
     color: '#777777',
     metalness: 0.5,
@@ -113,6 +136,56 @@ const floor = new THREE.Mesh(
 floor.receiveShadow = true
 floor.rotation.x = - Math.PI * 0.5
 scene.add(floor)
+
+// combine creating physics and 3js object together
+
+let objectsToSync = [];
+const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
+const sphereMaterial = new THREE.MeshStandardMaterial({
+  metalness: 0.5,
+  roughness: 0.5,
+  envMap: environmentMapTexture,
+  envMapIntensity: 0.5
+})
+
+const createSphere = (radius = 0.5, position) => {
+  if (!radius || !position) {
+    return
+  }
+
+  // 3Js Mesh
+  const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial)
+  sphereMesh.scale.set(radius, radius, radius);
+  sphereMesh.castShadow = true
+  sphereMesh.position.copy(position)
+  scene.add(sphereMesh)
+
+  // Physics sphere
+  const sphereShape = new CANNON.Sphere(radius)
+  const sphereBody = new CANNON.Body({
+    mass: 1,
+    shape: sphereShape,
+    material: defaultMaterial
+  })
+  sphereBody.position.copy(position);
+
+  // track objects
+  objectsToSync.push({
+    mesh: sphereMesh,
+    body: sphereBody
+  })
+
+  world.addBody(sphereBody);
+}
+
+createSphere(0.5, { x: 0, y: 5, z: 0 });
+
+const syncObjects = () => {
+  for (let objectPair of objectsToSync) {
+    const { mesh, body } = objectPair;
+    mesh.position.copy(body.position)
+  }
+}
 
 /**
  * Lights
@@ -186,6 +259,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
+
 /**
  * Animate
  */
@@ -201,13 +275,13 @@ const tick = () => {
   controls.update()
 
   // apply force
-  sphereBody.applyForce(new CANNON.Vec3(-0.5, 0, 0), sphereBody.position)
+  // sphereBody.applyForce(new CANNON.Vec3(-0.5, 0, 0), sphereBody.position)
 
   // update physics world
   world.step(1 / 60, deltaTime, 3)
 
   // sync physics world with 3JS world
-  sphere.position.copy(sphereBody.position)
+  syncObjects()
 
   // Render
   renderer.render(scene, camera)
