@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
+import { GroundProjectedSkybox } from 'three/examples/jsm/objects/GroundProjectedSkybox.js';
 
 /**
  * Base
@@ -84,12 +85,24 @@ gltfLoader.load(
 // })
 
 // #4: Using LDR (.jpg/.png) equirectangular image - 
-textureLoader.load('/environmentMaps/ancient_chinese.png', (environmentMap) => {
-  environmentMap.mapping = THREE.EquirectangularReflectionMapping;
-  scene.background = environmentMap;
-  scene.environment = environmentMap;
-})
+// textureLoader.load('/environmentMaps/ancient_chinese.png', (environmentMap) => {
+//   environmentMap.mapping = THREE.EquirectangularReflectionMapping;
+//   scene.background = environmentMap;
+//   scene.environment = environmentMap;
+// })
 
+// #5 Optimization: Ground projected skybox
+rgbeLoader.load('/environmentMaps/2/2k.hdr', (environmentMap) => {
+  environmentMap.mapping = THREE.EquirectangularReflectionMapping;
+  scene.environment = environmentMap;
+
+  const skybox = new GroundProjectedSkybox(environmentMap);
+  skybox.scale.setScalar(50);
+  scene.add(skybox);
+
+  gui.add(skybox, 'radius', 1, 200, 0.1).name('skybox radius')
+  gui.add(skybox, 'height', 1, 100, 0.1).name('skybox height')
+})
 
 const updateAllMaterial = () => {
   scene.traverse((child) => {
