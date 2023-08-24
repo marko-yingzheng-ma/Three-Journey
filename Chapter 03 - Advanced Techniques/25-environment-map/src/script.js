@@ -92,17 +92,51 @@ gltfLoader.load(
 // })
 
 // #5 Optimization: Ground projected skybox
-rgbeLoader.load('/environmentMaps/2/2k.hdr', (environmentMap) => {
-  environmentMap.mapping = THREE.EquirectangularReflectionMapping;
-  scene.environment = environmentMap;
+// rgbeLoader.load('/environmentMaps/2/2k.hdr', (environmentMap) => {
+//   environmentMap.mapping = THREE.EquirectangularReflectionMapping;
+//   scene.environment = environmentMap;
 
-  const skybox = new GroundProjectedSkybox(environmentMap);
-  skybox.scale.setScalar(50);
-  scene.add(skybox);
+//   const skybox = new GroundProjectedSkybox(environmentMap);
+//   skybox.scale.setScalar(50);
+//   scene.add(skybox);
 
-  gui.add(skybox, 'radius', 1, 200, 0.1).name('skybox radius')
-  gui.add(skybox, 'height', 1, 100, 0.1).name('skybox height')
-})
+//   gui.add(skybox, 'radius', 1, 200, 0.1).name('skybox radius')
+//   gui.add(skybox, 'height', 1, 100, 0.1).name('skybox height')
+// })
+
+
+
+/**
+ * Realtime Environment map
+ */
+const environmentMap = textureLoader.load('/environmentMaps/blockadesLabsSkybox/interior_views_cozy_wood_cabin_with_cauldron_and_p.jpg');
+environmentMap.mapping = THREE.EquirectangularReflectionMapping;
+scene.background = environmentMap;
+
+// holy donut 
+const holyDonut = new THREE.Mesh(
+  new THREE.TorusGeometry(8, 0.5),
+  new THREE.MeshBasicMaterial({ color: new THREE.Color(10, 4, 2) })
+)
+holyDonut.position.y = 3.5
+holyDonut.layers.enable(1);
+scene.add(holyDonut);
+
+// Cube render target
+const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
+  256,
+  {
+    type: THREE.HalfFloatType
+  }
+);
+scene.environment = cubeRenderTarget.texture
+
+// Cube camera to populate the cube render target
+const cubeCamera = new THREE.CubeCamera(0.1, 100, cubeRenderTarget);
+cubeCamera.layers.set(1);
+
+
+
 
 const updateAllMaterial = () => {
   scene.traverse((child) => {
@@ -131,7 +165,7 @@ scene.backgroundIntensity = config.backgroundIntensity;
  */
 
 const torusKnotMaterial = new THREE.MeshStandardMaterial({
-  roughness: 0.2,
+  roughness: 0,
   metalness: 1,
   color: 0xaaaaaa,
   envMapIntensity: config.environmentIntensity
@@ -224,6 +258,15 @@ const tick = () => {
 
   // Update controls
   controls.update()
+
+  // Update Realtime environment Map
+  if (holyDonut) {
+    holyDonut.rotation.x = elapsedTime * 0.5;
+    holyDonut.rotation.y = elapsedTime * 0.5;
+    holyDonut.rotation.z = elapsedTime * 0.5;
+
+    cubeCamera.update(renderer, scene)
+  }
 
   // Render
   renderer.render(scene, camera)
