@@ -4,6 +4,7 @@ import * as dat from 'lil-gui'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
+import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
 
 /**
  * Base
@@ -31,11 +32,10 @@ dracoLoader.setDecoderPath('/draco/')
 const gltfLoader = new GLTFLoader()
 gltfLoader.setDRACOLoader(dracoLoader)
 
-const textureLoader = new THREE.TextureLoader()
-
 const cubeTextureLoader = new THREE.CubeTextureLoader();
-
 const rgbeLoader = new RGBELoader();
+const exrLoader = new EXRLoader();
+const textureLoader = new THREE.TextureLoader()
 
 /**
  * Models
@@ -53,28 +53,42 @@ gltfLoader.load(
  * Environment map: Image Based Lighting
  */
 
-// #1: Using LDR textures (.png)
-const ldrEnvironmentMapTexture = cubeTextureLoader.load([
-  '/environmentMaps/0/px.png', // positive x
-  '/environmentMaps/0/nx.png', // negative x
-  '/environmentMaps/0/py.png',
-  '/environmentMaps/0/ny.png',
-  '/environmentMaps/0/pz.png',
-  '/environmentMaps/0/nz.png',
-])
-
-// #1: Using HDR equirectangular tedxture (.hdr) with RGBE encoding
-rgbeLoader.load('/environmentMaps/blender-2k.hdr', (environmentMap) => {
-  environmentMap.mapping = THREE.EquirectangularReflectionMapping;
-  // scene.background = environmentMap;
-  scene.environment = environmentMap;
-})
-
+// #1: Using LDR (.jpg/.png) cube images 
+// const ldrEnvironmentMapTexture = cubeTextureLoader.load([
+//   '/environmentMaps/0/px.png', // positive x
+//   '/environmentMaps/0/nx.png', // negative x
+//   '/environmentMaps/0/py.png',
+//   '/environmentMaps/0/ny.png',
+//   '/environmentMaps/0/pz.png',
+//   '/environmentMaps/0/nz.png',
+// ])
 
 // scene.background = ldrEnvironmentMapTexture;
 // scene.environment = ldrEnvironmentMapTexture;
 
 
+
+// #2: Using HDR (RGBE encoded/.hdr) equirectangular image
+// rgbeLoader.load('/environmentMaps/blender-2k.hdr', (environmentMap) => {
+//   environmentMap.mapping = THREE.EquirectangularReflectionMapping;
+//   scene.background = environmentMap; // this can be hidden and only show environment for the lighting.
+//   scene.environment = environmentMap;
+// })
+
+
+// #3: Using HDR  (EXR/.exr) equirectangular image
+// exrLoader.load('/environmentMaps/nvidiaCanvas-4k.exr', (environmentMap) => {
+//   environmentMap.mapping = THREE.EquirectangularReflectionMapping;
+//   scene.background = environmentMap;
+//   scene.environment = environmentMap;
+// })
+
+// #4: Using LDR (.jpg/.png) equirectangular image - 
+textureLoader.load('/environmentMaps/ancient_chinese.png', (environmentMap) => {
+  environmentMap.mapping = THREE.EquirectangularReflectionMapping;
+  scene.background = environmentMap;
+  scene.environment = environmentMap;
+})
 
 
 const updateAllMaterial = () => {
@@ -97,6 +111,8 @@ gui.add(config, 'backgroundIntensity').min(0).max(10).step(0.001).onFinishChange
 
 scene.backgroundBlurriness = config.backgroundBlurriness;
 scene.backgroundIntensity = config.backgroundIntensity;
+
+
 /**
  * Torus Knot
  */
