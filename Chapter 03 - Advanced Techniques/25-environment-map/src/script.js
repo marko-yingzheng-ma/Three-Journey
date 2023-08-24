@@ -64,9 +64,9 @@ const ldrEnvironmentMapTexture = cubeTextureLoader.load([
 ])
 
 // #1: Using HDR equirectangular tedxture (.hdr) with RGBE encoding
-rgbeLoader.load('/environmentMaps/0/2k.hdr', (environmentMap) => {
+rgbeLoader.load('/environmentMaps/blender-2k.hdr', (environmentMap) => {
   environmentMap.mapping = THREE.EquirectangularReflectionMapping;
-  scene.background = environmentMap;
+  // scene.background = environmentMap;
   scene.environment = environmentMap;
 })
 
@@ -102,10 +102,9 @@ scene.backgroundIntensity = config.backgroundIntensity;
  */
 
 const torusKnotMaterial = new THREE.MeshStandardMaterial({
-  roughness: 0,
+  roughness: 0.2,
   metalness: 1,
   color: 0xaaaaaa,
-  envMap: ldrEnvironmentMapTexture,
   envMapIntensity: config.environmentIntensity
 });
 
