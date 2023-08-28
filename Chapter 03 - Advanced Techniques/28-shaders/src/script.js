@@ -42,8 +42,13 @@ geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1))
 const material = new THREE.RawShaderMaterial({
   vertexShader: vertexShader,
   fragmentShader: fragmentShader,
-  side: THREE.DoubleSide
+  side: THREE.DoubleSide,
+  uniforms: {
+    uFrequency: { value: 5.0 }
+  }
 })
+
+gui.add(material.uniforms.uFrequency, 'value', 0, 100, 0.1);
 
 // Mesh
 const mesh = new THREE.Mesh(geometry, material)
