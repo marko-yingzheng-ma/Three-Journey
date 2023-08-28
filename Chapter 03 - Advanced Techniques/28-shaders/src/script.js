@@ -20,7 +20,7 @@ const scene = new THREE.Scene()
  * Textures
  */
 const textureLoader = new THREE.TextureLoader()
-
+const flagTexture = textureLoader.load('/textures/chinese-flag.jpg')
 /**
  * Test mesh
  */
@@ -44,14 +44,19 @@ const material = new THREE.RawShaderMaterial({
   fragmentShader: fragmentShader,
   side: THREE.DoubleSide,
   uniforms: {
-    uFrequency: { value: 5.0 }
+    uFrequency: { value: new THREE.Vector2(5, 5) },
+    uTime: { value: 0.0 },
+    uColor: { value: new THREE.Color('orange') },
+    uTexture: { value: flagTexture }
   }
 })
 
-gui.add(material.uniforms.uFrequency, 'value', 0, 100, 0.1);
+gui.add(material.uniforms.uFrequency.value, 'x', 0, 100, 0.1);
+gui.add(material.uniforms.uFrequency.value, 'y', 0, 100, 0.1);
 
 // Mesh
 const mesh = new THREE.Mesh(geometry, material)
+mesh.scale.y = 2 / 3;
 scene.add(mesh)
 
 /**
@@ -108,6 +113,9 @@ const tick = () => {
 
   // Update controls
   controls.update()
+
+  // update uTime for vertex shader
+  material.uniforms.uTime.value = elapsedTime;
 
   // Render
   renderer.render(scene, camera)

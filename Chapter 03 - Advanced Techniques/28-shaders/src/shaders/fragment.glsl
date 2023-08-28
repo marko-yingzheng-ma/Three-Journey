@@ -1,5 +1,8 @@
 precision mediump float;
 
+uniform vec3 uColor;
+uniform sampler2D uTexture;
+
 varying float vRandom; // vRandom will be the same as aRandom for pixel on the vertex. For other pixels vRandrom value will be between the vertex's aRandom value
 
 /**
@@ -7,7 +10,12 @@ varying float vRandom; // vRandom will be the same as aRandom for pixel on the v
 
   During the interpolation process, the varying property's value at each vertex is calculated, and then the fragment shader receives the interpolated value based on the position of the fragment within the primitive. This allows for smooth transitions of the varying property across the surface of the primitive, even if the vertex shader is executed less frequently.
 */
+varying vec2 vUv;
+varying float vElevation;
 
 void main() {
-  gl_FragColor = vec4(0.5, vRandom, 1.0, 1.0);
+  vec4 textureColor = texture2D(uTexture, vUv);
+  // gl_FragColor = vec4(vRandom, 0.2, uColor.x, 1.0);
+  textureColor.rgb *= vElevation * 2.0 + 0.8;
+  gl_FragColor = textureColor;
 }
