@@ -12,6 +12,10 @@ THREE.ColorManagement.enabled = false
  */
 // Debug
 const gui = new dat.GUI({ width: 340 })
+const config = {
+  depthColor: '#0000ff',
+  surfaceColor: '#8888ff'
+}
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -23,17 +27,23 @@ const scene = new THREE.Scene()
  * Water
  */
 // Geometry
-const waterGeometry = new THREE.PlaneGeometry(2, 2, 128, 128)
+const waterGeometry = new THREE.PlaneGeometry(10, 10, 128, 128)
 
 // Material
 const waterMaterial = new THREE.ShaderMaterial({
   fragmentShader: fragmentShader,
   vertexShader: vertexShader,
   uniforms: {
+    uTime: { value: 0.0 },
+
     uBigWavesElevation: { value: 0.2 },
     uBigWavesFrequency: { value: new THREE.Vector2(4.0, 2.0) },
-    uTime: { value: 0.0 },
-    uBigWavesSpeed: { value: 1.0 }
+    uBigWavesSpeed: { value: 1.0 },
+
+    uDepthColor: { value: new THREE.Color(config.depthColor) },
+    uSurfaceColor: { value: new THREE.Color(config.surfaceColor) },
+    uColorOffSet: { value: 0.25 },
+    uColorMultipler: { value: 5.0 }
   },
   side: THREE.DoubleSide
 });
@@ -43,6 +53,10 @@ gui.add(waterMaterial.uniforms.uBigWavesElevation, 'value', 0.0, 1.0, 0.001).nam
 gui.add(waterMaterial.uniforms.uBigWavesFrequency.value, 'x', 0.0, 10.0, 0.01).name('uBigWavesFrequencyX');
 gui.add(waterMaterial.uniforms.uBigWavesFrequency.value, 'y', 0.0, 10.0, 0.01).name('uBigWavesFrequencyZ');
 gui.add(waterMaterial.uniforms.uBigWavesSpeed, 'value', 0.0, 10.0, 0.01).name('uBigWavesSpeed');
+gui.addColor(config, 'depthColor').onChange(() => waterMaterial.uniforms.uDepthColor.value = new THREE.Color(config.depthColor))
+gui.addColor(config, 'surfaceColor').onChange(() => waterMaterial.uniforms.uSurfaceColor.value = new THREE.Color(config.surfaceColor))
+gui.add(waterMaterial.uniforms.uColorOffSet, 'value', 0.0, 1.0, 0.001).name("uColorOffSet");
+gui.add(waterMaterial.uniforms.uColorMultipler, 'value', 0.0, 10.0, 0.001).name("colorMultipler");
 
 // Mesh
 const water = new THREE.Mesh(waterGeometry, waterMaterial)
